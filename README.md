@@ -28,5 +28,8 @@ You may get a warning about the R version - this only matters if the R version i
 Do the same for the other project. Note that the installation could take a while!
 
 The notebooks can be rendered with `rmarkdown::render()`, or by clicking on __Preview__ in RStudio. 
+**Note that you will need to have the_ *pandoc* system library available to render markdown 
+documents.** *Pandoc* is shipped with RStudio, so outside of RStudio you will need to get the library 
+[installed](https://pandoc.org/installing.html). 
 
 As an exercise, you may want to take the code in the notebooks and rewrite as a standalone R script. 
