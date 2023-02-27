@@ -24,8 +24,8 @@ You should do this in separate R sessions and run the projects in separate R ses
 To restore a project, first make sure that you have the [renv](https://rstudio.github.io/renv/) 
 package installed. Navigate to one of the project directories and start R. Then at the command line 
 type `renv::restore()`. The correct versions of all of the packages will be installed to the project. 
-You may get a warning about the R version - hopefully this won't matter. 
-Do the same for the other project. 
+You may get a warning about the R version - this only matters if the R version is older than 3.5.
+Do the same for the other project. Note that the installation could take a while!
 
 The notebooks can be rendered with `rmarkdown::render()`, or by clicking on __Preview__ in RStudio. 
 
