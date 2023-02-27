@@ -1,0 +1,211 @@
+---
+title: "harpSpatial Test: harphub version"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+Start by loading harp
+```{r load-harp, message=FALSE, warning=FALSE, error=FALSE}
+library(harp)
+```
+
+The data are from 15 August 2022 over southern Norway - forecasts from MEPS determinisitic (member 0 of the ensemble) and observations from MET Norway Nordic analysis (a blend of radar, in situ observations and model data where there are no observations - lead time unkonwn?)
+
+Set some paths and stuff
+```{r set-paths}
+obs_dir <- "/home/andrewts/data/harpSpatial/met_analysis"
+obs_template <- "met_analysis_1_0km_nordic_{YYYY}{MM}{DD}T{HH}Z.nc"
+obs_opts <- netcdf_opts(proj4_var = "projection_lcc")
+
+fcst_dir <- "/home/andrewts/data/harpSpatial/meps/"
+fcst_template <- "meps_det_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
+fcst_opts <- netcdf_opts(ref_time_var = NA, z_var = "height0")
+
+start_date <- 2022081501
+end_date <- 2022081700
+```
+
+Define verification domain
+```{r verif-domain, message=FALSE, warning=FALSE, error=FALSE}
+dom <- read_forecast(
+  date_times          = 2022081500,
+  fcst_model          = "meps", 
+  parameter           = "Pcp",
+  lead_time           = 0,
+  file_path           = fcst_dir,
+  file_template       = fcst_template,
+  file_format_opts    = fcst_opts,
+  transformation      = "subgrid",
+  transformation_opts = subgrid_opts(172, 472, 180, 480),
+  return_data         = TRUE 
+) %>% 
+  get_domain(meps_det)
+```
+
+Plot the domain to check it's right
+```{r plot-dom}
+plot(dom)
+```
+
+
+Read observations
+```{r read-obs, message=FALSE, warning=FALSE, error=FALSE}
+obs <- read_analysis(
+  date_times          = seq_dates(start_date, end_date),
+  analysis_model      = "met_analysis",
+  parameter           = "precipitation_amount",
+  file_path           = obs_dir,
+  file_template       = obs_template,
+  file_format_opts    = obs_opts,
+  transformation      = "regrid",
+  transformation_opts = regrid_opts(dom)
+)
+```
+
+Plot observations
+```{r plot-obs, message=FALSE, warning=FALSE, error=FALSE, fig.width=12, fig.height=12, fig.align='center'}
+countries <- get_map(dom = dom, poly = FALSE)
+ggplot() + 
+  geom_georaster(aes(geofield = met_analysis), obs$met_analysis) +
+  geom_path(aes(x, y), countries) + 
+  scico::scale_fill_scico(
+    "mm", palette = "oslo", direction = -1, limits = c(0.125, NA),
+    trans = "log", breaks = c(0.125, 0.25, 0.5, 1, 2, 4, 8, 16, 32),
+    na.value = "transparent"
+  ) +
+  coord_equal(expand = FALSE) +
+  facet_wrap(vars(validdate)) +
+  theme_harp_map()
+  
+```
+
+Read forecast
+```{r read-fcst, message=FALSE, warning=FALSE, error=FALSE}
+fcst <- read_forecast(
+  date_times          = 2022081500,
+  fcst_model          = "meps",
+  parameter           = "Pcp",
+  lead_time           = seq(0, 48),
+  file_path           = fcst_dir,
+  file_template       = fcst_template,
+  file_format_opts    = fcst_opts,
+  transformation      = "regrid",
+  transformation_opts = regrid_opts(dom),
+  return_data         = TRUE 
+)
+
+```
+
+Plot forecast
+```{r plot-obs, , message=FALSE, warning=FALSE, error=FALSE, fig.width=12, fig.height=12, fig.align='center'}
+ggplot() + 
+  geom_georaster(aes(geofield = meps_det), accumulate(fcst$meps, 1)) +
+  geom_path(aes(x, y), countries) + 
+  scico::scale_fill_scico(
+    "mm", palette = "oslo", direction = -1, limits = c(0.125, NA),
+    trans = "log", breaks = c(0.125, 0.25, 0.5, 1, 2, 4, 8, 16, 32),
+    na.value = "transparent"
+  ) +
+  coord_equal(expand = FALSE) +
+  facet_wrap(vars(validdate)) +
+  theme_harp_map()
+  
+```
+
+Just for fun... use verify_fuzzy for in memory calculation of FSS - this will become much easier soon(ish)
+```{r verify-with-mapply, message=FALSE, warning=FALSE, error=FALSE}
+fcst <- accumulate(fcst, 1) # Make sure the forecasts are 1h precip
+fss <- mapply(
+  verify_fuzzy,
+  fcst$meps$meps_det,
+  obs$met_analysis$met_analysis,
+  MoreArgs = list(thresholds = c(0.5, 1), window_sizes = c(3, 5, 7)),
+  SIMPLIFY = FALSE
+) %>% 
+  dplyr::bind_rows()
+```
+
+```{r fss-as-table}
+fss
+```
+
+Now use the main verify_spatial function (Note that for netcdf, the parameter name needs to be mapped to the variable name in the file as they are different for the forecast and observation files):
+```{r verif-spatial, message=FALSE, warning=FALSE, error=FALSE}
+verif1h <- verify_spatial(
+  start_date        = 2022081500,
+  end_date          = 2022081500,
+  det_model         = "meps_det",
+  parameter         = "AccPcp1h",
+  lead_time         = seq(0, 48),
+  fc_file_path      = fcst_dir,
+  fc_file_template  = fcst_template,
+  fc_file_format    = "netcdf",
+  fc_options        = modify_opts(
+    fcst_opts, 
+    param_find = list(AccPcp1h = "precipitation_amount_acc")
+  ),
+  ob_file_path      = obs_dir, 
+  ob_file_template  = obs_template,
+  ob_file_format    = "netcdf",
+  ob_options        = modify_opts(
+    obs_opts, 
+    param_find = list(AccPcp1h = "precipitation_amount")
+  ),
+  ob_accumulation   = "1h",
+  verif_domain      = dom
+)
+
+```
+
+Currently the accumulation is done via the parameter name (e.g. AccPcp1h for 1h precipitation), which requires care in setting the mapping to the variable in the netcdf files, so if we want to do 3-hour accumualtions we need to change the parameter name and the mapping:
+```{r verif-spatial-3h, message=FALSE, warning=FALSE, error=FALSE}
+verif3h <- verify_spatial(
+  start_date        = 2022081500,
+  end_date          = 2022081500,
+  det_model         = "meps_det",
+  parameter         = "AccPcp3h",
+  lead_time         = seq(0, 48),
+  fc_file_path      = fcst_dir,
+  fc_file_template  = fcst_template,
+  fc_file_format    = "netcdf",
+  fc_options        = modify_opts(
+    fcst_opts, 
+    param_find = list(AccPcp3h = "precipitation_amount_acc")
+  ),
+  ob_file_path      = obs_dir, 
+  ob_file_template  = obs_template,
+  ob_file_format    = "netcdf",
+  ob_options        = modify_opts(
+    obs_opts, 
+    param_find = list(AccPcp3h = "precipitation_amount")
+  ),
+  ob_accumulation   = "1h",
+  verif_domain      = dom
+)
+```
+
+Now we can make some plots:
+```{r plot-fss}
+plot_spatial_verif(verif1h, fss)
+```
+
+This gives the FSS aggregated over all times in the verification data. We can filter the data with `filter_by`
+```{r plot-fss-filter}
+plot_spatial_verif(verif1h, fss, filter_by = vars(leadtime == 12))
+```
+
+To facet the plot for individual lead times requires going back to ggplot
+```{r plot-fss-facet, fig.height=9, fig.width=9, fig.align='center'}
+ggplot(
+  verif3h$fuzzy, 
+  aes(factor(threshold), factor(scale), fill = fss, label = sprintf("%1.2f", fss))
+) +
+  geom_raster() +
+  geom_text(size = 3) +
+  scico::scale_fill_scico("FSS", palette = "cork", limits = c(0, 1)) +
+  coord_equal(expand = FALSE) + 
+  facet_wrap(vars(leadtime)) + 
+  labs(x = "Threshold [mm]", y = "Neighbourhood Length (grid squares)")
+```
+

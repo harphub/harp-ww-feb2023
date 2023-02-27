@@ -1,0 +1,120 @@
+---
+title: "harpSpatialTeam harpSpatial test"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+This notebook is a test of new developments in the harpSpatial package, currently in the harpSpatialTeam repository on Github. Here spatial verification is run on the same data that used for the current version of harpSpatial that is available in the harphub repository on Github. 
+
+Begin by 
+
+```{r setup, message=FALSE, warning=FALSE, error=FALSE}
+library(harp)
+library(here)
+obs_dir      <- here("data", "met_analysis")
+obs_template <- "met_analysis_1_0km_nordic_{YYYY}{MM}{DD}T{HH}Z.nc"
+obs_opts     <- netcdf_opts(proj4_var = "projection_lcc")
+
+fcst_dir      <- here("data", "meps")
+fcst_template <- "meps_det_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
+fcst_opts     <- netcdf_opts(ref_time_var = NA, z_var = "height0")
+
+start_date <- 2022081500
+end_date   <- start_date
+```
+
+Set the verification domain by reading in a forecast field and subgridding. Note that here the harpSpatialTeam version of harpVis is used that doesn't include the `get_domain()` function, so the domain is extracted a slightly more cumbersome way. 
+```{r verif-domain, message=FALSE, warning=FALSE, error=FALSE}
+dom <- read_forecast(
+  date_times          = 2022081500,
+  fcst_model          = "meps", 
+  parameter           = "Pcp",
+  lead_time           = 0,
+  file_path           = fcst_dir,
+  file_template       = fcst_template,
+  file_format_opts    = fcst_opts,
+  transformation      = "subgrid",
+  transformation_opts = subgrid_opts(172, 472, 180, 480),
+  return_data         = TRUE 
+)[[1]][["meps_det"]][[1]] %>% 
+  meteogrid::as.geodomain()
+```
+
+Plot the verif domain, just to make sure we got the correct one
+```{r plot-dom}
+plot(dom)
+```
+
+Now it's time to do the verification using `verifiy_spatial()`. Note that `param_find` needs to be used to map to the variable names in the netcdf files. 
+```{r verify, message=FALSE, warning=FALSE, error=FALSE}
+verif <- verify_spatial(
+  start_date       = start_date,
+  end_date         = end_date, 
+  parameter        = "AccPcp1h",
+  model            = "meps",
+  lead_time        = seq(0, 24),
+  fc_file_path     = fcst_dir, 
+  fc_file_template = fcst_template,
+  fc_options = modify_opts(
+    fcst_opts, 
+    param_find = list(AccPcp1h = "precipitation_amount_acc")
+  ),
+  ob_file_path     = obs_dir,
+  ob_file_template = obs_template,
+  ob_options       = modify_opts(
+    obs_opts, 
+    param_find = list(AccPcp1h = "precipitation_amount")
+  ),
+  ob_accumulation  = "1h",
+  verif_domain     = dom
+)
+```
+
+Now that the verification is done, the output can be inspected.
+```{r show-output}
+verif
+```
+
+There may be some issues with the likes of bias, mse, rmse etc. as they are all `NA`. 
+
+For plotting, the harpSpatialTeam version of harpVis should be updated to be compatible with these outputs.
+```{r}
+plot_spatial_verif(verif, FSS)
+plot_spatial_verif(verif, SAL)
+```
+
+The problem is in extracting the correct data frame (it is done with `verif_data$score_name` instead of `verif_data[[score_name]]`). There is also a missing function when it comes to plotting the FSS, but SAL works if you just send it the data frame!
+
+```{r plot-sal, fig.align='center'}
+plot_spatial_verif(verif$SAL, SAL) +
+  coord_equal()
+```
+
+For FSS we have to go back to ggplot
+```{r plot-fss, fig.width=12, fig.height=9, fig.align='center'}
+ggplot(
+  verif$FSS, 
+  aes(
+    factor(threshold), 
+    factor(scale), 
+    fill = fss, 
+    label = sprintf("%1.2f", fss)
+  )
+) +
+  geom_raster() +
+  geom_text(size = 3) +
+  facet_wrap(vars(leadtime), ncol = 8) +
+  scico::scale_fill_scico(
+    "FSS", palette = "bam", limits = c(0, 1)
+  ) +
+  coord_equal(expand = FALSE) +
+  labs(
+    x = "Threshold [mm]",
+    y = "Neighbourhood Radius [grid boxes]"
+  )
+```
+
+Note that here, the spatial scale is expressed as the neighbourhood radius rather than the neighbourhood length as in the harphub version. Also the lead time is always in seconds, which isn't necessarily ideal but could easily be converted in the aesthetic setting (e.g. `factor(leadtime / 3600)`)
+
+The alternative method is to use a configuration file...
