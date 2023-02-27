@@ -8,6 +8,7 @@ editor_options:
 Start by loading harp
 ```{r load-harp, message=FALSE, warning=FALSE, error=FALSE}
 library(harp)
+library(here)
 ```
 
 The data are from 15 August 2022 over southern Norway - forecasts from MEPS determinisitic (member 0 of the ensemble) and observations from MET Norway Nordic analysis (a blend of radar, in situ observations and model data where there are no observations - lead time unkonwn?)
