@@ -1,6 +1,10 @@
 # harp-ww-feb2023
 Example code and projects for the harp working week at DMI in February 2023. 
 
+**Before beginning, it is highly recommended that you have a Github Public Access Token (PAT). This will prevent Github from 
+throttling downloads based on too many files and / or lack of authentication. You will need a Github account and you can 
+follow the instructions in [Happy Git with R](https://happygitwithr.com/https-pat.html) for how to set it the PAT from within R.**
+
 This repository is for reproducing spatial verication examples that were shown during the working week. The repository is set up as follows:
 
 ```
@@ -29,7 +33,7 @@ is older than 3.5. Do the same for the other project. Note that the installation
 the first project, but should be quick for the second as it will use a linked cache for the packages.
 
 The notebooks can be rendered with `rmarkdown::render()`, or by clicking on __Preview__ in RStudio. 
-**Note that you will need to have the_ *pandoc* system library available to render markdown 
+**Note that you will need to have the *pandoc* system library available to render markdown 
 documents.** *Pandoc* is shipped with RStudio, so outside of RStudio you will need to get the library 
 [installed](https://pandoc.org/installing.html). 
 
