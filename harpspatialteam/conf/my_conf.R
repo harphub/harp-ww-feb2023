@@ -8,7 +8,7 @@ by               <- "12h"
 members          <- NULL
 
 # Forecast file settings
-fc_file_path     <- here::here("data", "meps")
+fc_file_path     <- here::here("..", "data", "meps")
 fc_file_template <- "meps_det_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
 fc_file_format   <- NULL
 
@@ -32,7 +32,7 @@ fc_accumulation  <- NULL
 #######################################################################
 
 # Observation file settings
-ob_file_path     <- here::here("data", "met_analysis")
+ob_file_path     <- here::here("..", "data", "met_analysis")
 ob_file_template <- "met_analysis_1_0km_nordic_{YYYY}{MM}{DD}T{HH}Z.nc"
 ob_file_format   <- NULL
 ob_options       <- harpIO::netcdf_opts(
@@ -56,7 +56,7 @@ ob_accumulation  <- "1h"
 ########################################################################
 
 # Verification domain
-verif_domain <- readRDS(here::here("harpspatialteam", "conf", "my_domain.rds"))
+verif_domain <- readRDS(here::here("conf", "my_domain.rds"))
 use_mask     <- FALSE
 
 #######################################################################
