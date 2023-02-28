@@ -25,6 +25,8 @@ This repository is for reproducing spatial verication examples that were shown d
 In order to get up and running, you first need to restore the projects from the lockfiles. 
 You should do this in separate R sessions and run the projects in separate R sessions as well. 
 
+## Brief Instructions
+
 To restore a project, first make sure that you have the [renv](https://rstudio.github.io/renv/) 
 package installed. Navigate to one of the project directories (harphub or harpspatialteam) and start R. 
 Then at the command line type `renv::restore()`. The correct versions of all of the packages will be 
@@ -38,3 +40,33 @@ documents.** *Pandoc* is shipped with RStudio, so outside of RStudio you will ne
 [installed](https://pandoc.org/installing.html). 
 
 As an exercise, you may want to take the code in the notebooks and rewrite as a standalone R script. 
+
+## Detailed Instructions for the harphub project (do exactly the same for harpspatialteam)
+
+
+After cloning the repository
+
+**RStudio**
+
+* Open RStudio
+* File > Open Project > Directory where you installed the repository > harp-ww-feb2023 > harphub > harphub.Rproj
+* In the console pane: `renv::restore()`
+* Say yes to activating project
+* Say yes to proceeding with installation of packages
+* Wait (in general warnings can be ignored)
+* File > Open File > harphub_test.Rmd
+* In Source pane (normally top left) > Run > Run All
+* When finshed.. In Source Pane > Preview
+
+**R from Terminal**
+
+* cd to `path/to/repository/harp-ww-feb2023/harphub`
+* Start R
+* `renv::restore()`
+* Say yes to activating project
+* Say yes to proceeding with installation of packages
+* Wait (In general warnings can be ignored)
+* `rmarkdown::render("harphub_test.Rmd")`
+* When finished open harphub_test.nb.html in a web browser
+
+
