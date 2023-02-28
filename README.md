@@ -1,6 +1,9 @@
 # harp-ww-feb2023
 Example code and projects for the harp working week at DMI in February 2023. 
 
+Rendered versions of the examples can be found on the [harp Training Course](https://harphub.github.io/harp-training-2022/verifspat.html) 
+website. 
+
 **Before beginning, it is highly recommended that you have a Github Public Access Token (PAT). This will prevent Github from 
 throttling downloads based on too many files and / or lack of authentication. You will need a Github account and you can 
 follow the instructions in [Happy Git with R](https://happygitwithr.com/https-pat.html) for how to set it the PAT from within R.**
