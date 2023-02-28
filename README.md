@@ -10,7 +10,7 @@ This repository is for reproducing spatial verication examples that were shown d
 ├── harphub - project directory using the harpSpatial version at harphub
 │   ├── renv.lock - lockfile to restore project: use renv::restore() from this directory
 │   ├── harphub_test.Rmd - notebook markdown
-├── harpspatialtema - project directory using the development harpSpatial version at harpSpatialTeam
+├── harpspatialteam - project directory using the development harpSpatial version at harpSpatialTeam
 │   ├── renv.lock - lockfile to restore project: use renv::restore() from this directory
 │   ├── harphub_test.Rmd - notebook markdown
 ├── ├── conf
@@ -22,10 +22,11 @@ In order to get up and running, you first need to restore the projects from the 
 You should do this in separate R sessions and run the projects in separate R sessions as well. 
 
 To restore a project, first make sure that you have the [renv](https://rstudio.github.io/renv/) 
-package installed. Navigate to one of the project directories and start R. Then at the command line 
-type `renv::restore()`. The correct versions of all of the packages will be installed to the project. 
-You may get a warning about the R version - this only matters if the R version is older than 3.5.
-Do the same for the other project. Note that the installation could take a while!
+package installed. Navigate to one of the project directories (harphub or harpspatialteam) and start R. 
+Then at the command line type `renv::restore()`. The correct versions of all of the packages will be 
+installed to the project. You may get a warning about the R version - this only matters if the R version 
+is older than 3.5. Do the same for the other project. Note that the installation could take a while for 
+the first project, but should be quick for the second as it will use a linked cache for the packages.
 
 The notebooks can be rendered with `rmarkdown::render()`, or by clicking on __Preview__ in RStudio. 
 **Note that you will need to have the_ *pandoc* system library available to render markdown 
