@@ -53,7 +53,7 @@ verif <- verify_spatial(
   end_date         = end_date, 
   parameter        = "AccPcp1h",
   model            = "meps",
-  lead_time        = seq(0, 24),
+  lead_time        = seq(0, 48),
   fc_file_path     = fcst_dir, 
   fc_file_template = fcst_template,
   fc_options = modify_opts(
@@ -84,9 +84,12 @@ plot_spatial_verif(verif, FSS)
 plot_spatial_verif(verif, SAL)
 ```
 
-The problem is in extracting the correct data frame (it is done with `verif_data$score_name` instead of `verif_data[[score_name]]`). There is also a missing function when it comes to plotting the FSS, but SAL works if you just send it the data frame!
+The problem is in extracting the correct data frame (it is done with `verif_data$score_name` instead of `verif_data[[score_name]]`). There is a missing function 
+when it comes to plotting the FSS, but SAL works if you just send it the data frame! However, as some of the functions used in the code are not properly namespaced, 
+we need to make sure that the dplyr library is attached. 
 
 ```{r plot-sal, fig.align='center'}
+library(dplyr)
 plot_spatial_verif(verif$SAL, SAL) +
   coord_equal()
 ```
@@ -120,4 +123,15 @@ Note that here, the spatial scale is expressed as the neighbourhood radius rathe
 The alternative method is to use a configuration file... There is a configuration file under `harpspatialteam/conf`
 ```{r verify-from-config, message=FALSE, warning=FALSE, error=FALSE}
 harpSpatial_read_config(here("harpspatialteam", "conf", "my_conf.R"))
+verif_from_conf <- verify_spatial(
+  start_date = start_date,
+  end_date   = end_date,
+  parameter  = "AccPcp1h",
+  model      = "meps"
+)
+```
+
+We can check that we got the same result using `identical()`
+```{r check-verif}
+identical(verif, verif_from_conf)
 ```
