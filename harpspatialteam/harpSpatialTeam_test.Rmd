@@ -1,4 +1,4 @@
----
+ ---
 title: "harpSpatialTeam harpSpatial test"
 output: html_notebook
 editor_options: 
@@ -117,4 +117,7 @@ ggplot(
 
 Note that here, the spatial scale is expressed as the neighbourhood radius rather than the neighbourhood length as in the harphub version. Also the lead time is always in seconds, which isn't necessarily ideal but could easily be converted in the aesthetic setting (e.g. `factor(leadtime / 3600)`)
 
-The alternative method is to use a configuration file...
+The alternative method is to use a configuration file... There is a configuration file under `harpspatialteam/conf`
+```{r verify-from-config, message=FALSE, warning=FALSE, error=FALSE}
+harpSpatial_read_config(here("harpspatialteam", "conf", "my_conf.R"))
+```
