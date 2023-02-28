@@ -80,8 +80,8 @@ There may be some issues with the likes of bias, mse, rmse etc. as they are all 
 
 For plotting, the harpSpatialTeam version of harpVis should be updated to be compatible with these outputs.
 ```{r}
-plot_spatial_verif(verif, FSS)
-plot_spatial_verif(verif, SAL)
+#plot_spatial_verif(verif, FSS)
+#plot_spatial_verif(verif, SAL)
 ```
 
 The problem is in extracting the correct data frame (it is done with `verif_data$score_name` instead of `verif_data[[score_name]]`). There is a missing function 
