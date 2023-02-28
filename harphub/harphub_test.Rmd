@@ -15,11 +15,11 @@ The data are from 15 August 2022 over southern Norway - forecasts from MEPS dete
 
 Set some paths and stuff
 ```{r set-paths}
-obs_dir <- here("data", "met_analysis")
+obs_dir <- here("..", "data", "met_analysis")
 obs_template <- "met_analysis_1_0km_nordic_{YYYY}{MM}{DD}T{HH}Z.nc"
 obs_opts <- netcdf_opts(proj4_var = "projection_lcc", lon_var = NULL, lat_var = NULL)
 
-fcst_dir <- here("data", "meps")
+fcst_dir <- here("..", "data", "meps")
 fcst_template <- "meps_det_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
 fcst_opts <- netcdf_opts(ref_time_var = NA, z_var = "height0")
 
@@ -99,7 +99,7 @@ fcst <- read_forecast(
 ```
 
 Plot forecast
-```{r plot-obs, , message=FALSE, warning=FALSE, error=FALSE, fig.width=12, fig.height=12, fig.align='center'}
+```{r plot-fcst, message=FALSE, warning=FALSE, error=FALSE, fig.width=12, fig.height=12, fig.align='center'}
 ggplot() + 
   geom_georaster(aes(geofield = meps_det), accumulate(fcst$meps, 1)) +
   geom_path(aes(x, y), countries) + 
@@ -197,7 +197,7 @@ plot_spatial_verif(verif1h, fss, filter_by = vars(leadtime == 12))
 ```
 
 To facet the plot for individual lead times requires going back to ggplot
-```{r plot-fss-facet, fig.height=9, fig.width=9, fig.align='center'}
+```{r plot-fss-facet, fig.height=12, fig.width=12, fig.align='center'}
 ggplot(
   verif1h$fuzzy, 
   aes(factor(threshold), factor(scale), fill = fss, label = sprintf("%1.2f", fss))
@@ -208,5 +208,12 @@ ggplot(
   coord_equal(expand = FALSE) + 
   facet_wrap(vars(leadtime)) + 
   labs(x = "Threshold [mm]", y = "Neighbourhood Length (grid squares)")
+```
+
+Plot the SAL:
+```{r plot-sal, warning=FALSE}
+plot_spatial_verif(verif1h, SAL) +
+  coord_equal()
+
 ```
 
