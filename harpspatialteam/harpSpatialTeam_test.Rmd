@@ -122,7 +122,7 @@ Note that here, the spatial scale is expressed as the neighbourhood radius rathe
 
 The alternative method is to use a configuration file... There is a configuration file under `harpspatialteam/conf`
 ```{r verify-from-config, message=FALSE, warning=FALSE, error=FALSE}
-harpSpatial_read_config(here("harpspatialteam", "conf", "my_conf.R"))
+harpSpatial_read_config(here("conf", "my_conf.R"))
 verif_from_conf <- verify_spatial(
   start_date = start_date,
   end_date   = end_date,
